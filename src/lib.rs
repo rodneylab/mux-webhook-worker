@@ -52,7 +52,7 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
             let data: MuxEvent;
             match req.json().await {
                 Ok(res) => data = res,
-                Err(error) => return Response::error(error.to_string(), 400),
+                Err(_) => return Response::error("Bad request", 400),
             }
             let telegram_message = serde_json::to_string_pretty(&data).unwrap();
 
