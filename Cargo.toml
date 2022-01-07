@@ -4,7 +4,7 @@ version = "0.0.1"
 authors = ["Rodney Johnson <ask@rodneylab.com>"]
 description = "Cloudflare Worker which listens for mux video upload events"
 license = "BSD-3-Clause"
-repository = "https://github.com/rodney/mux-webhook-worker"
+repository = "https://github.com/rodneylab/mux-webhook-worker"
 edition = "2018"
 
 [lib]
