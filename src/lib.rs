@@ -1,8 +1,12 @@
+use crate::mux_webhook_event::MuxWebhookEvent;
 use crate::telegram_client::TelegramClient;
+
 use serde::{Deserialize, Serialize};
 
 use worker::*;
 
+mod crypto;
+mod mux_webhook_event;
 mod telegram_client;
 
 mod utils;
@@ -32,6 +36,12 @@ struct MuxEvent {
     created_at: String,
 }
 
+#[derive(Serialize)]
+struct MuxEventReport {
+    data: MuxEvent,
+    verified: bool,
+}
+
 #[event(fetch)]
 pub async fn main(req: Request, env: Env) -> Result<Response> {
     log_request(&req);
@@ -54,8 +64,19 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
                 Ok(res) => data = res,
                 Err(_) => return Response::error("Bad request", 400),
             }
-            let telegram_message = serde_json::to_string_pretty(&data).unwrap();
-
+            let mux_secret = ctx.var("MUX_WEBHOOK_SIGNING_SECRET")?.to_string();
+            let mux_webhook_event = MuxWebhookEvent::new(&mux_secret);
+            let mux_signature = match req.headers().get("Mux-Signature").unwrap() {
+                Some(value) => value,
+                None => return Response::error("Bad request", 400),
+            };
+            let raw_request_body = match req.text().await {
+                Ok(res) => res,
+                Err(_) => return Response::error("Bad request", 400),
+            };
+            let verified: bool = mux_webhook_event.verify_event(&mux_signature, &raw_request_body);
+            let report: MuxEventReport = MuxEventReport { data, verified };
+            let telegram_message = serde_json::to_string_pretty(&report).unwrap();
             let telegram_bot_api_token = ctx.var("TELEGRAM_BOT_API_TOKEN")?.to_string();
             let telegram_bot_chat_id = ctx.var("TELEGRAM_BOT_CHAT_ID")?.to_string();
             let telegram_client =
