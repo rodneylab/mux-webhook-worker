@@ -5,20 +5,14 @@ type HmacSha256 = SimpleHmac<Sha256>;
 
 #[allow(dead_code)]
 pub fn hmac_sha_256_sign(key: &[u8], message: &[u8]) -> Vec<u8> {
-    let mut mac = match HmacSha256::new_from_slice(key) {
-        Ok(val) => val,
-        Err(_) => panic!("Error parsing HMAC_SHA256 key"),
-    };
+    let mut mac = HmacSha256::new_from_slice(key).expect("Error parsing HMAC_SHA256 key");
     mac.update(message);
     let result = mac.finalize().into_bytes();
     result.to_vec()
 }
 
 pub fn hmac_sha_256_verify(key: &[u8], message: &[u8], signature: &[u8]) -> bool {
-    let mut mac = match HmacSha256::new_from_slice(key) {
-        Ok(val) => val,
-        Err(_) => panic!("Error parsing HMAC_SHA256 key"),
-    };
+    let mut mac = HmacSha256::new_from_slice(key).expect("Error parsing HMAC_SHA256 key");
     mac.update(message);
     let result = mac.finalize().into_bytes();
     result.as_slice() == signature
