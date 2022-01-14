@@ -16,10 +16,11 @@ default = ["console_error_panic_hook"]
 [dependencies]
 cfg-if = "0.1.2"
 hex= "0.4.3"
+hmac = "0.12.0"
 nom = "7.1.0"
 reqwest = { version = "0.11.4", features = ["json"]}
-ring = { version = "0.16", features = ["alloc","dev_urandom_fallback"]}
 serde = "1.0.117"
+sha2 = "0.10"
 worker = "0.0.7"
 serde_json = "1.0.67"
 

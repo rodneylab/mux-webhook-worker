@@ -1,15 +1,27 @@
-use ring::hmac;
+use hmac::{Mac, SimpleHmac};
+use sha2::Sha256;
+
+type HmacSha256 = SimpleHmac<Sha256>;
 
 #[allow(dead_code)]
 pub fn hmac_sha_256_sign(key: &[u8], message: &[u8]) -> Vec<u8> {
-    let ring_key = hmac::Key::new(hmac::HMAC_SHA256, key);
-    let result = hmac::sign(&ring_key, message);
-    result.as_ref().to_vec()
+    let mut mac = match HmacSha256::new_from_slice(key) {
+        Ok(val) => val,
+        Err(_) => panic!("Error parsing HMAC_SHA256 key"),
+    };
+    mac.update(message);
+    let result = mac.finalize().into_bytes();
+    result.to_vec()
 }
 
 pub fn hmac_sha_256_verify(key: &[u8], message: &[u8], signature: &[u8]) -> bool {
-    let ring_key = hmac::Key::new(hmac::HMAC_SHA256, key);
-    hmac::verify(&ring_key, message, signature).is_ok()
+    let mut mac = match HmacSha256::new_from_slice(key) {
+        Ok(val) => val,
+        Err(_) => panic!("Error parsing HMAC_SHA256 key"),
+    };
+    mac.update(message);
+    let result = mac.finalize().into_bytes();
+    result.as_slice() == signature
 }
 
 #[cfg(test)]
