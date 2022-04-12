@@ -1,8 +1,7 @@
-use crate::mux_webhook_event::MuxWebhookEvent;
+use crate::mux_webhook_event::{MuxEvent, MuxWebhookEvent};
 use crate::telegram_client::TelegramClient;
 
-use serde::{Deserialize, Serialize};
-
+use serde::Serialize;
 use worker::*;
 
 mod crypto;
@@ -20,21 +19,6 @@ fn log_request(req: &Request) {
     );
 }
 
-#[derive(Deserialize, Serialize)]
-struct MuxData {
-    status: String,
-    id: String,
-    duration: f32,
-    created_at: String,
-}
-
-#[derive(Deserialize, Serialize)]
-struct MuxEvent {
-    r#type: String,
-    data: MuxData,
-    created_at: String,
-}
-
 #[derive(Serialize)]
 struct MuxEventReport {
     data: MuxEvent,
@@ -44,18 +28,8 @@ struct MuxEventReport {
 #[event(fetch)]
 pub async fn main(req: Request, env: Env) -> Result<Response> {
     log_request(&req);
-
-    // Optionally, get more helpful error messages written to the console in the case of a panic.
     utils::set_panic_hook();
-
-    // Optionally, use the Router to handle matching endpoints, use ":name" placeholders, or "*name"
-    // catch-alls to match on specific patterns. Alternatively, use `Router::with_data(D)` to
-    // provide arbitrary data that will be accessible in each route via the `ctx.data()` method.
     let router = Router::new();
-
-    // Add as many routes as your Worker needs! Each route will get a `Request` for handling HTTP
-    // functionality and a `RouteContext` which you can use to  and get route parameters and
-    // Environment bindings like KV Stores, Durable Objects, Secrets, and Variables.
     router
         .post_async("/mux-endpoint", |mut req, ctx| async move {
             let mux_secret = ctx.var("MUX_WEBHOOK_SIGNING_SECRET")?.to_string();
