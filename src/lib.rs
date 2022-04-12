@@ -26,7 +26,7 @@ struct MuxEventReport {
 }
 
 #[event(fetch)]
-pub async fn main(req: Request, env: Env) -> Result<Response> {
+pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Response> {
     log_request(&req);
     utils::set_panic_hook();
     let router = Router::new();
